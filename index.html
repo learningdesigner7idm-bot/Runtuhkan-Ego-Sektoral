@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>Runtuhkan Ego Strultural</title>
+    <title>Runtuhkan Ego Sektoral</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -33,7 +33,12 @@
             flex-direction: column;
         }
 
-        /* --- UI COMPONENTS --- */
+        /* Verification screen is scrollable */
+        #verify-view {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .wa-header {
             background-color: var(--wa-teal);
             color: white;
@@ -128,7 +133,6 @@
             text-transform: uppercase;
         }
 
-        /* --- STATUS CHIP --- */
         .completed-marker {
             background-color: #e7ffdb;
             color: #008069;
@@ -144,7 +148,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* --- INPUT BAR --- */
         .wa-input-container {
             padding: 10px 8px;
             background-color: #f0f2f5;
@@ -190,7 +193,6 @@
             flex-shrink: 0;
         }
 
-        /* --- FLOW HINT BAR --- */
         .flow-hint-bar {
             background-color: var(--wa-amber);
             color: #000;
@@ -210,12 +212,12 @@
         /* --- VERIFICATION SCREEN --- */
         .verification-container {
             background: linear-gradient(180deg, #00a884 0%, #008069 100%);
-            height: 100%;
+            min-height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 0 24px;
+            padding: 40px 24px;
         }
 
         .input-card {
@@ -241,6 +243,7 @@
             color: var(--wa-teal);
             font-size: 36px;
             box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
         }
 
         .input-wa-verify {
@@ -256,6 +259,44 @@
             font-weight: 700;
             transition: all 0.3s;
             margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        /* --- GENDER DROPDOWN --- */
+        .gender-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #54656f;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            display: block;
+            text-align: left;
+        }
+
+        .gender-select {
+            background: #f0f2f5;
+            border: 2px solid #e9edef;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #111;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2354656f' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .gender-select:focus {
+            border-color: #00a884;
         }
 
         .sim-warning {
@@ -378,9 +419,16 @@
             <h2 class="text-xl font-black text-gray-800 tracking-tight">Verifikasi Profil</h2>
             <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-black">Akses Cabang JKT 1</p>
             
-            <div class="mt-8">
+            <div class="mt-6">
                 <input type="text" id="player-name-input" class="input-wa-verify" placeholder="Nama Panggilan Anda" maxlength="12" autocomplete="off">
             </div>
+
+            <!-- GENDER DROPDOWN -->
+            <span class="gender-label">Kamu seorang:</span>
+            <select id="gender-select" class="gender-select">
+                <option value="male">👨 Pria</option>
+                <option value="female">👩 Wanita</option>
+            </select>
 
             <div class="sim-warning">
                 <i class="fas fa-shield-alt"></i>
@@ -450,14 +498,15 @@
                 </div>
             </div>
             
+            <!-- Dummy contact: changes based on gender -->
             <div class="flex items-center p-4 opacity-70 border-b border-gray-50">
-                <img src="https://ui-avatars.com/api/?name=Istri&background=e91e63&color=fff" class="avatar" alt="Istri">
+                <img id="dummy-contact-avatar" src="https://ui-avatars.com/api/?name=Istri&background=e91e63&color=fff" class="avatar" alt="Kontak">
                 <div class="flex-grow pb-2">
                     <div class="flex justify-between items-center mb-1">
-                        <h3 class="font-bold text-gray-900 text-[15px]">Istri ❤️</h3>
+                        <h3 id="dummy-contact-name" class="font-bold text-gray-900 text-[15px]">Istri ❤️</h3>
                         <span class="text-xs text-gray-400">09:30</span>
                     </div>
-                    <p class="text-sm text-gray-400 truncate w-60">Pa, titip token listrik ya...</p>
+                    <p id="dummy-contact-msg" class="text-sm text-gray-400 truncate w-60">Pa, titip token listrik ya...</p>
                 </div>
             </div>
         </div>
@@ -487,7 +536,6 @@
         </div>
 
         <main id="jaya-chat-container" class="chat-scroll-area">
-            <!-- Jaya Messages -->
         </main>
         
         <div id="jaya-input-bar" class="wa-input-container hidden">
@@ -541,7 +589,6 @@
         </div>
 
         <main id="chat-container" onclick="handleChatAreaClick(event)" class="chat-scroll-area">
-            <!-- Project Messages -->
         </main>
 
         <div id="project-input-bar" class="wa-input-container">
@@ -567,7 +614,7 @@
 
     <script>
         /**
-         * --- GLOBAL HELPERS (DEFINED AT THE TOP) ---
+         * --- GLOBAL HELPERS ---
          */
         function vibrate(pattern) {
             if (window.navigator && window.navigator.vibrate) {
@@ -586,6 +633,27 @@
             if (hr >= 11 && hr < 15) return "Siang";
             if (hr >= 15 && hr < 19) return "Sore";
             return "Malam";
+        }
+
+        /**
+         * --- GENDER HELPERS ---
+         * playerTitle() = "Pak" (pria) or "Bu" (wanita) — only used for addressing the PLAYER.
+         * NPC names/honorifics are always hardcoded in message data.
+         */
+        function playerGender() {
+            return document.getElementById('gender-select').value;
+        }
+
+        function playerTitle() {
+            return playerGender() === 'female' ? 'Bu' : 'Pak';
+        }
+
+        // Replaces {title} (player's honorific) and {player} (player's name) in text.
+        // NPC names are hardcoded in messages and are never touched.
+        function applyGender(text) {
+            return text
+                .replace(/\{title\}/g, playerTitle())
+                .replace(/\{player\}/g, playerName);
         }
 
         /**
@@ -627,42 +695,44 @@
         let errorsCount = 0;
         const namesInGroup = "Pak Andre, Bu Sari, Pak Budi, Bu Rina, Pak Dani, Bu Mia, Pak Surya";
 
+        // Chat messages — use {title} where player's honorific should appear
+        // {player} = player name, {title} = Pak/Bu based on gender
         const chatMessages = [
             { id: 101, name: "Pak Andre (Mgr. Marketing)", text: "Ijin update, campaign 'Merdeka Sale' kick-off minggu depan. Mohon support percepatan dari masing-masing ya.", isSilo: false },
             { id: 102, name: "Bu Sari (Mgr. IT)", text: "Maaf Pak Andre, dari IT masih progress integrasi API. Ada kendala server saat ini, tim lagi usahakan.", isSilo: false },
             { id: 1, name: "Pak Andre (Mgr. Marketing)", text: "Waduh Bu, jangan kelamaan. Kalau IT telat nanti campaign SAYA bisa berantakan. Target sales SAYA harus tembus 100% bulan ini, saya nggak mau tahu API IT harus kelar besok!", isSilo: true, responses: [
-                { text: `Pak Andre sabar, jangan egois gitu. Kita semua kan kerja.`, type: "wrong", replies: [{ name: "Pak Andre", text: `Maaf Pak {player}, tapi target saya terancam. IT lambat sekali.` }] },
+                { text: `Pak Andre sabar, jangan egois gitu. Kita semua kan kerja.`, type: "wrong", replies: [{ name: "Pak Andre", text: `Maaf {title} {player}, tapi target saya terancam. IT lambat sekali.` }] },
                 { text: `Tenang Pak Andre. Mari fokus ke Shared Goal: Pengalaman belanja terbaik buat pelanggan kita.`, type: "correct", feedback: "Shared Goal menarik kembali fokus ke misi besar perusahaan.", replies: [
-                    { name: "Pak Andre", text: `Iya juga ya Pak {player}. Maaf Bu Sari, saya panik. Apa yang bisa tim kami bantu?` },
+                    { name: "Pak Andre", text: `Iya juga ya {title} {player}. Maaf Bu Sari, saya panik. Apa yang bisa tim kami bantu?` },
                     { name: "Bu Sari", text: `Nggak apa-apa Pak Andre, kami paham. Kami kebut integrasinya secepatnya.` }
                 ]}
             ]},
             { id: 2, name: "Bu Mia (Mgr. Legal)", text: "Terkait promo Merdeka, saya belum bisa approve draf S&K ya. Banyak poin belum sesuai kepatuhan baru. Antre revisi 3-5 hari ya.", isSilo: true, responses: [
-                { text: `Bu Mia, apa blocker terbesar di draf itu yang bisa kami bantu perbaiki hari ini?`, type: "correct", feedback: "Open Mapping membantu rekan kerja mengatasi hambatan.", replies: [{ name: "Bu Mia", text: `Refund-nya aja Pak {player}. Kalau Marketing bantu ganti bahasanya sekarang, sore ini beres.` }] },
-                { text: `Legal jangan kaku lah Bu. Project urgent kok harus antre normal?`, type: "wrong", replies: [{ name: "Bu Mia", text: `Prosedur ini buat keamanan kita semua, Pak {player}.` }] }
+                { text: `Bu Mia, apa blocker terbesar di draf itu yang bisa kami bantu perbaiki hari ini?`, type: "correct", feedback: "Open Mapping membantu rekan kerja mengatasi hambatan.", replies: [{ name: "Bu Mia", text: `Refund-nya aja {title} {player}. Kalau Marketing bantu ganti bahasanya sekarang, sore ini beres.` }] },
+                { text: `Legal jangan kaku lah Bu. Project urgent kok harus antre normal?`, type: "wrong", replies: [{ name: "Bu Mia", text: `Prosedur ini buat keamanan kita semua, {title} {player}.` }] }
             ]},
             { id: 3, name: "Pak Surya (Mgr. Logistik)", text: "Mohon maaf, saya nggak bisa kirim stok tambahan kalau tim Ops belum kasih rekap data pallet. Itu SOP Gudang.", isSilo: true, responses: [
                 { text: `Mari kita buat Dashboard Bersama agar data pallet transparan bagi Logistik & Ops tiap hari.`, type: "correct", feedback: "Single Source of Truth merobohkan kecurigaan antar departemen.", replies: [
-                    { name: "Pak Surya", text: `Wah, setuju Pak {player}. Jadi saya nggak perlu nagih-nagih manual lagi.` },
-                    { name: "Pak Budi", text: `Siap Pak Surya! Kami input datanya segera ya.` }
+                    { name: "Pak Surya", text: `Wah, setuju {title} {player}. Jadi saya nggak perlu nagih-nagih manual lagi.` },
+                    { name: "Pak Budi", text: `Siap {title} {player}! Kami input datanya segera ya.` }
                 ]},
-                { text: `Pak Surya fleksibel dikit lah, ini kan darurat promo Merdeka.`, type: "wrong", replies: [{ name: "Pak Surya", text: `Nanti kalau selisih stoknya banyak, siapa yang tanggung jawab Pak {player}?` }] }
+                { text: `Pak Surya fleksibel dikit lah, ini kan darurat promo Merdeka.`, type: "wrong", replies: [{ name: "Pak Surya", text: `Nanti kalau selisih stoknya banyak, siapa yang tanggung jawab {title} {player}?` }] }
             ]},
             { id: 4, name: "Bu Rina (Mgr. Finance)", text: "Data budget promo sebelumnya rahasia ya. Silakan ijin Direksi kalau mau akses datanya di grup.", isSilo: true, responses: [
-                { text: `Bu Rina, data apa yang Ibu butuhkan dari tim agar budget Merdeka aman secara compliance?`, type: "correct", feedback: "Membangun rasa aman bagi Finance membantu data lebih terbuka.", replies: [{ name: "Bu Rina", text: `Cukup memo project ini aja Pak {player}. Kalau ada itu, saya buka aksesnya sekarang.` }] },
-                { text: `Bu Rina pelit amat datanya. Kita kan mau evaluasi biar budget nggak boncos.`, type: "wrong", replies: [{ name: "Bu Rina", text: `Ini soal audit perusahaan, bukan soal pelit atau tidak Pak {player}.` }] }
+                { text: `Bu Rina, data apa yang Ibu butuhkan dari tim agar budget Merdeka aman secara compliance?`, type: "correct", feedback: "Membangun rasa aman bagi Finance membantu data lebih terbuka.", replies: [{ name: "Bu Rina", text: `Cukup memo project ini aja {title} {player}. Kalau ada itu, saya buka aksesnya sekarang.` }] },
+                { text: `Bu Rina pelit amat datanya. Kita kan mau evaluasi biar budget nggak boncos.`, type: "wrong", replies: [{ name: "Bu Rina", text: `Ini soal audit perusahaan, bukan soal pelit atau tidak {title} {player}.` }] }
             ]},
             { id: 5, name: "Pak Dani (Mgr. Area JKT 1)", text: `Selamat ${getGreeting()}. Langsung saja ya, khusus stok susu promo, amankan buat Toko Sudirman dulu. Gak usah dibagi-bagi ke toko kecil yang gak jelas penjualannya. Sudirman itu wajah kita. Toko lain bisa nunggu kloter berikutnya saja.`, isSilo: true, responses: [
-                { text: `Pak Dani, mari pastikan distribusi stok ini merata demi profit perusahaan secara total, bukan demi gengsi satu toko saja.`, type: "correct", feedback: "Menarik perspektif ego ke arah sukses kolektif.", replies: [{ name: "Pak Dani", text: "Maksud saya justru demi profit Pak {player}. Di Sudirman itu traffic-nya tinggi sekali. Kalau stoknya dipencar ke toko kecil yang gak jelas, malah jadi stok mati. Sayang barangnya!" }] },
-                { text: `Bapak jangan pilih kasih, toko kecil juga butuh jualan biar berkembang.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Gak bisa gitu Pak {player}. Bisnis itu harus realistis, kasih barang ke yang pasti laku!" }] }
+                { text: `Pak Dani, mari pastikan distribusi stok ini merata demi profit perusahaan secara total, bukan demi gengsi satu toko saja.`, type: "correct", feedback: "Menarik perspektif ego ke arah sukses kolektif.", replies: [{ name: "Pak Dani", text: "Maksud saya justru demi profit {title} {player}. Di Sudirman itu traffic-nya tinggi sekali. Kalau stoknya dipencar ke toko kecil yang gak jelas, malah jadi stok mati. Sayang barangnya!" }] },
+                { text: `Pak Dani jangan pilih kasih, toko kecil juga butuh jualan biar berkembang.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Gak bisa gitu {title} {player}. Bisnis itu harus realistis, kasih barang ke yang pasti laku!" }] }
             ]},
             { id: 6, name: "Pak Dani (Mgr. Area JKT 1)", text: "Saya tetap gak setuju kalau Sudirman dikurangi stoknya cuma gara-gara mau pemerataan ke toko-toko kecil yang potensinya belum terbukti. Saya mau amankan target omzet total lewat JKT 1!", isSilo: true, responses: [
                 { text: `Kita gunakan sistem transfer antar-toko yang dinamis. Jika stok di Sudirman menipis lebih cepat, Logistik langsung tarik stok dari toko kecil terdekat dalam 2 jam.`, type: "correct", feedback: "Solusi jaminan keamanan bagi target individu dan kolektif.", replies: [
-                    { name: "Pak Dani", text: "Nah, kalau ada jaminan rotasi cepat seperti itu, saya bisa tenang Pak {player}. Maaf saya agak keras di awal. Oke, saya ikut sistem." },
-                    { name: "Pak Surya", text: "Noted Pak Dani! Armada gudang kami stand by khusus buat rotasi cepat antar toko." },
+                    { name: "Pak Dani", text: "Nah, kalau ada jaminan rotasi cepat seperti itu, saya bisa tenang {title} {player}. Maaf saya agak keras di awal. Oke, saya ikut sistem." },
+                    { name: "Pak Surya", text: "Noted {title} {player}! Armada gudang kami stand by khusus buat rotasi cepat antar toko." },
                     { name: "Pak Andre", text: "Sip! Strategi promo kita bisa jalan di semua lini sekarang!" }
                 ]},
-                { text: `Bapak harus ikut profesional, jangan cuma pikirkan JKT 1 saja.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Bukannya membantah Pak {player}, saya cuma mau menyelamatkan angka penjualan kita!" }] }
+                { text: `Bapak harus ikut profesional, jangan cuma pikirkan JKT 1 saja.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Bukannya membantah {title} {player}, saya cuma mau menyelamatkan angka penjualan kita!" }] }
             ]}
         ];
 
@@ -684,6 +754,24 @@
             if (!bar || !content) return;
             if (text) { bar.classList.remove('hidden'); content.innerText = text; }
             else { bar.classList.add('hidden'); }
+        }
+
+        function updateHomeDummyContact() {
+            const contactName = document.getElementById('dummy-contact-name');
+            const contactMsg = document.getElementById('dummy-contact-msg');
+            const contactAvatar = document.getElementById('dummy-contact-avatar');
+
+            if (playerGender() === 'female') {
+                contactName.innerText = 'Suami ❤️';
+                contactMsg.innerText = 'Papa ijin mancing ya ma..';
+                contactAvatar.src = 'https://ui-avatars.com/api/?name=Suami&background=1d4ed8&color=fff';
+                contactAvatar.alt = 'Suami';
+            } else {
+                contactName.innerText = 'Istri ❤️';
+                contactMsg.innerText = 'Pa, titip token listrik ya...';
+                contactAvatar.src = 'https://ui-avatars.com/api/?name=Istri&background=e91e63&color=fff';
+                contactAvatar.alt = 'Istri';
+            }
         }
 
         function backToHome() {
@@ -721,7 +809,7 @@
         }
 
         /**
-         * --- LOGIC: SAVE NAME ---
+         * --- LOGIC: SAVE NAME & GENDER ---
          */
         function saveNameAndProceed() {
             const input = document.getElementById('player-name-input');
@@ -732,6 +820,10 @@
             }
             playerName = input.value.trim();
             AudioEngine.init();
+
+            // Apply dummy contact based on gender
+            updateHomeDummyContact();
+
             document.getElementById('verify-view').classList.add('hidden-view');
             document.getElementById('home-view').classList.remove('hidden-view');
             setHint("Baca pesan dari Pak Jaya (Direksi) terlebih dahulu untuk menerima instruksi misi.");
@@ -749,7 +841,7 @@
             if (!isJayaTaskDone) renderJayaSimulation();
             else {
                 if (!isJayaReplySent) setHint("Klik tombol Kirim (hijau) di bawah untuk membalas Pak Jaya.", "jaya-hint-bar", "jaya-hint-content");
-                else setHint("Instruksi diterima. Klik tombol kembali kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
+                else setHint("Instruksi diterima. Klik tombol kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
             }
         }
 
@@ -757,10 +849,11 @@
             isJayaTaskDone = true;
             const container = document.getElementById('jaya-chat-container');
             const gr = getGreeting();
+            const title = playerTitle();
             const messages = [
-                `${gr} ${playerName}, saya banyak terima laporan soal kondisi Cabang JKT 1 belakangan ini.`,
+                `${gr} ${title} ${playerName}, saya banyak terima laporan soal kondisi Cabang JKT 1 belakangan ini.`,
                 "Saya mendeteksi adanya tindakan Silo Ego Sektoral antar Manager di sana yang mulai menghambat operasional.",
-                `Saya perintahkan kamu untuk kawal Project Promo kali ini. Pastikan tidak ada lagi hal-hal berbau Silo Ego, ${playerName}.`,
+                `Saya perintahkan ${title} ${playerName} untuk kawal Project Promo kali ini. Pastikan tidak ada lagi hal-hal berbau Silo Ego.`,
                 "Ingat, perusahaan kita adalah satu tim yang solid. Semua harus bekerja sama tanpa kecuali."
             ];
 
@@ -778,7 +871,7 @@
             }
 
             document.getElementById('jaya-input-bar').classList.remove('hidden');
-            document.getElementById('jaya-input-text').innerText = "Siap Pak Jaya, bisa saya laksanakan. Tugas akan saya jalankan maksimal untuk meruntuhkan ego sektoral di Cab JKT 1.";
+            document.getElementById('jaya-input-text').innerText = `Siap Pak Jaya, bisa saya laksanakan. Tugas akan saya jalankan maksimal untuk meruntuhkan ego sektoral di Cab JKT 1.`;
             setHint("Klik tombol Kirim (hijau) di bawah untuk membalas Pak Jaya.", "jaya-hint-bar", "jaya-hint-content");
         }
 
@@ -798,7 +891,7 @@
             
             document.getElementById('jaya-input-bar').classList.add('hidden');
             document.getElementById('jaya-unread').classList.add('hidden');
-            document.getElementById('jaya-snippet').innerText = "Siap Pak Jaya, bisa saya laksanakan.";
+            document.getElementById('jaya-snippet').innerText = `Siap Pak Jaya, bisa saya laksanakan.`;
             document.getElementById('jaya-snippet').classList.remove('font-bold');
             
             const projectItem = document.getElementById('project-chat-item');
@@ -809,7 +902,7 @@
             document.getElementById('project-lock-icon').className = "fas fa-check text-green-500 text-xs";
 
             document.getElementById('jaya-back-btn').classList.add('blink-back');
-            setHint("Instruksi diterima. Klik tombol kembali kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
+            setHint("Instruksi diterima. Klik tombol kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
         }
 
         /**
@@ -818,11 +911,12 @@
         async function renderInitialProjectState() {
             isInitialRenderDone = true;
             const container = document.getElementById('chat-container');
+            const title = playerTitle();
             container.innerHTML = `
                 <div class="date-divider"><span>Kemarin</span></div>
                 <div class="message-bubble msg-left" onclick="vibrate(40); showToast('Pesan ini sudah sesuai.')">
                     <p class="text-[10px] font-bold text-teal-700 mb-1">Pak Andre (Mgr. Marketing)</p>
-                    <p class="text-sm text-gray-800 leading-snug text-normal">Pak, mohon ijin nanti diskusi soal promo di grup ya.</p>
+                    <p class="text-sm text-gray-800 leading-snug text-normal">${title} ${playerName}, mohon ijin nanti diskusi soal promo di grup ya.</p>
                     <p class="text-[9px] text-gray-400 text-right mt-1">16:30</p>
                 </div>
                 <div class="date-divider"><span>Hari Ini</span></div>
@@ -861,10 +955,11 @@
         async function runGreetings() {
             const container = document.getElementById('chat-container');
             const subtitle = document.getElementById('group-subtitle');
+            const title = playerTitle();
             const greetings = [
-                { n: "Pak Andre (Mgr. Marketing)", t: `Siap, monitor Pak ${playerName}. 👍` },
+                { n: "Pak Andre (Mgr. Marketing)", t: `Siap, monitor ${title} ${playerName}. 👍` },
                 { n: "Pak Dani (Area JKT 1)", t: `Monitor.` },
-                { n: "Bu Sari (Mgr. IT)", t: `Siap monitor Pak ${playerName}.` },
+                { n: "Bu Sari (Mgr. IT)", t: `Siap monitor ${title} ${playerName}.` },
                 { n: "Pak Budi (Mgr. Ops)", t: "💪", s: true }
             ];
             for (let g of greetings) {
@@ -903,7 +998,7 @@
                 bubble.id = `msg-${msg.id}`;
                 bubble.innerHTML = `
                     <p class="text-[10px] font-bold text-teal-700 mb-1">${msg.name}</p>
-                    <p class="text-sm text-gray-800 leading-snug text-left text-normal">${msg.text.replace(/{player}/g, playerName)}</p>
+                    <p class="text-sm text-gray-800 leading-snug text-left text-normal">${applyGender(msg.text)}</p>
                     <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
                 `;
                 bubble.onclick = (e) => { e.stopPropagation(); handleMessageClick(msg); };
@@ -932,13 +1027,13 @@
             const optionsContainer = document.getElementById('response-options');
             const preview = document.getElementById('reply-preview-context');
             const cleanName = msg.name.split(' (')[0];
-            preview.innerHTML = `<span class="font-bold text-teal-700 text-left block">${cleanName}:</span><br>"${msg.text.substring(0, 50)}..."`;
+            preview.innerHTML = `<span class="font-bold text-teal-700 text-left block">${cleanName}:</span><br>"${applyGender(msg.text).substring(0, 50)}..."`;
             
             optionsContainer.innerHTML = '';
             msg.responses.forEach((resp) => {
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left p-4 border border-gray-100 rounded-2xl text-[13px] bg-gray-50 active:bg-teal-50 shadow-sm transition-all font-medium leading-snug";
-                btn.innerText = resp.text.replace(/{player}/g, playerName);
+                btn.innerText = applyGender(resp.text);
                 btn.onclick = (e) => { e.stopPropagation(); selectResponse(msg, resp); };
                 optionsContainer.appendChild(btn);
             });
@@ -969,9 +1064,9 @@
             myBubble.innerHTML = `
                 <div class="reply-box">
                     <span class="reply-name">${cleanName}</span>
-                    <span class="truncate">${originalMsg.text.replace(/{player}/g, playerName)}</span>
+                    <span class="truncate">${applyGender(originalMsg.text).substring(0, 60)}...</span>
                 </div>
-                <p class="text-sm text-gray-800 text-left text-normal">${resp.text.replace(/{player}/g, playerName)}</p>
+                <p class="text-sm text-gray-800 text-left text-normal">${applyGender(resp.text)}</p>
                 ${resp.feedback ? `<div class="mt-2 p-2 bg-white/60 border border-gray-100 rounded text-[11px] text-gray-600 italic"><b>Insight:</b> ${resp.feedback}</div>` : ''}
                 <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()} <i class="fas fa-check-double text-blue-400"></i></p>
             `;
@@ -981,7 +1076,7 @@
             if (resp.type === 'correct') {
                 vibrate(50); AudioEngine.success();
                 for (let reply of resp.replies) {
-                    const processedText = reply.text.replace(/{player}/g, playerName);
+                    const processedText = applyGender(reply.text);
                     subtitle.innerHTML = `<span class="italic text-teal-50">${reply.name.split(' (')[0]} membalas...</span>`;
                     await new Promise(r => setTimeout(r, 2000));
                     AudioEngine.incoming();
@@ -1019,7 +1114,7 @@
                     bubble6.onclick = (e) => { e.stopPropagation(); handleMessageClick(msg6); };
                     bubble6.innerHTML = `
                         <p class="text-[10px] font-bold text-teal-700 mb-1">Pak Dani (Mgr. Area JKT 1)</p>
-                        <p class="text-sm text-gray-800 leading-snug text-left text-normal">${msg6.text.replace(/{player}/g, playerName)}</p>
+                        <p class="text-sm text-gray-800 leading-snug text-left text-normal">${applyGender(msg6.text)}</p>
                         <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
                     `;
                     container.appendChild(bubble6);
@@ -1029,7 +1124,7 @@
             } else {
                 vibrate([150, 50, 150]); AudioEngine.error(); errorsCount++;
                 for (let reply of resp.replies) {
-                    const processedText = reply.text.replace(/{player}/g, playerName);
+                    const processedText = applyGender(reply.text);
                     const replyBubble = document.createElement('div');
                     replyBubble.className = `message-bubble msg-left`;
                     replyBubble.onclick = () => { vibrate(100); showToast("Kurang tepat, emosi rekan tersulut."); };
