@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
+    <title>Runtuhkan Ego Strultural</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --wa-teal: #008069;
+            --wa-teal-dark: #075e54;
+            --wa-green: #25d366;
+            --wa-bg: #f0f2f5;
+            --wa-chat-bg: #e5ddd5;
+            --wa-reply-bg: rgba(0, 0, 0, 0.05);
+            --wa-amber: #ffc107;
+            --wa-warning-bg: #fff9e6;
+            --wa-warning-border: #ffeeba;
+        }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .wa-header {
+            background-color: var(--wa-teal);
+            color: white;
+            padding: 12px 16px;
+            flex-shrink: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+        }
+
+        .wa-tabs {
+            background-color: var(--wa-teal);
+            color: white;
+            display: flex;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .wa-tab { padding: 12px 0; flex: 1; opacity: 0.7; position: relative; }
+        .wa-tab.active { opacity: 1; }
+        .wa-tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 3px; background-color: white;
+        }
+
+        .chat-bg-pattern {
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            background-size: 400px;
+            overscroll-behavior-y: contain;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-scroll-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 14.5px;
+            line-height: 1.45;
+            position: relative;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .msg-left { background-color: white; align-self: flex-start; border-top-left-radius: 0; margin-right: 15%; }
+        .msg-right { background-color: #e7ffdb; align-self: flex-end; border-top-right-radius: 0; margin-left: 15%; }
+
+        .reply-box {
+            background-color: var(--wa-reply-bg);
+            border-left: 4px solid var(--wa-teal);
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            color: #54656f;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reply-box .reply-name { font-weight: bold; color: var(--wa-teal); font-size: 10.5px; margin-bottom: 1px; }
+
+        .hidden-view { display: none !important; }
+
+        .date-divider { text-align: center; margin: 16px 0; align-self: center; width: 100%; }
+        .date-divider span {
+            background: #d1d7db;
+            color: #54656f;
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* --- STATUS CHIP --- */
+        .completed-marker {
+            background-color: #e7ffdb;
+            color: #008069;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            border: 1px solid rgba(0, 128, 105, 0.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* --- INPUT BAR --- */
+        .wa-input-container {
+            padding: 10px 8px;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 110;
+        }
+
+        .wa-input-wrapper {
+            background: white;
+            flex-grow: 1;
+            border-radius: 25px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .wa-input-text {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: #111;
+            max-height: 100px;
+            overflow-y: auto;
+            word-break: break-word;
+        }
+
+        .wa-send-btn {
+            background-color: #00a884;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        /* --- FLOW HINT BAR --- */
+        .flow-hint-bar {
+            background-color: var(--wa-amber);
+            color: #000;
+            padding: 14px 16px;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 200;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        /* --- VERIFICATION SCREEN --- */
+        .verification-container {
+            background: linear-gradient(180deg, #00a884 0%, #008069 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+        }
+
+        .input-card {
+            background: white;
+            border-radius: 24px;
+            padding: 45px 24px 30px 24px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+            text-align: center;
+            position: relative;
+        }
+
+        .avatar-circle-setup {
+            width: 85px; height: 85px;
+            background: #e7ffdb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -80px auto 25px auto;
+            border: 6px solid white;
+            color: var(--wa-teal);
+            font-size: 36px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .input-wa-verify {
+            background: #f0f2f5;
+            border: 2px solid #e9edef;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 18px;
+            outline: none;
+            text-align: center;
+            color: #111;
+            font-weight: 700;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .sim-warning {
+            background-color: var(--wa-warning-bg);
+            border-radius: 14px;
+            padding: 14px;
+            margin: 15px 0 25px 0;
+            border: 1px solid var(--wa-warning-border);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .sim-warning i { color: #856404; font-size: 18px; margin-top: 2px; }
+        .sim-warning p { font-size: 11.5px; color: #856404; line-height: 1.5; font-weight: 600; }
+
+        .btn-start {
+            background-color: #00a884;
+            color: white;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 8px 20px rgba(0, 168, 132, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-start:active { transform: scale(0.96); background-color: #008069; }
+
+        /* --- MISSION UI --- */
+        .mission-hint {
+            background-color: #fef3c7;
+            border-bottom: 1px solid #fde68a;
+            padding: 12px 16px;
+            z-index: 50;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+        }
+
+        .avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            margin-right: 12px; flex-shrink: 0;
+            object-fit: cover;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .blink-back {
+            animation: pulse-attention 1.2s infinite;
+            background-color: var(--wa-amber) !important;
+            color: #000 !important;
+            border-radius: 50% !important;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        @keyframes pulse-attention {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.8); transform: scale(1); }
+            70% { box-shadow: 0 0 0 18px rgba(255, 193, 7, 0); transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); transform: scale(1); }
+        }
+
+        .locked-chat { filter: grayscale(0.6); opacity: 0.6; }
+        .sticker-msg { background: none !important; box-shadow: none !important; font-size: 40px; padding: 0 !important; }
+        
+        #toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85); color: white;
+            padding: 12px 24px; border-radius: 25px;
+            font-size: 13px; z-index: 1000; opacity: 0;
+            transition: opacity 0.3s; pointer-events: none;
+            text-align: center; width: 75%; font-weight: 600;
+        }
+
+        .result-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            margin: 25px auto;
+            border: 2px solid #e9edef;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            max-width: 90%;
+            align-self: center;
+        }
+
+        .btn-restart-action {
+            background-color: #00a884;
+            color: white;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 168, 132, 0.3);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Pesan ini sudah sesuai!</div>
+
+    <!-- SCREEN 0: VERIFIKASI (SETUP) -->
+    <div id="verify-view" class="verification-container">
+        <div class="input-card">
+            <div class="avatar-circle-setup">
+                <i class="fas fa-user-secret"></i>
+            </div>
+            
+            <h2 class="text-xl font-black text-gray-800 tracking-tight">Verifikasi Profil</h2>
+            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-black">Akses Cabang JKT 1</p>
+            
+            <div class="mt-8">
+                <input type="text" id="player-name-input" class="input-wa-verify" placeholder="Nama Panggilan Anda" maxlength="12" autocomplete="off">
+            </div>
+
+            <div class="sim-warning">
+                <i class="fas fa-shield-alt"></i>
+                <p><b>Simulasi Edukasi:</b> Ini bukan WhatsApp asli. Data Anda tidak disimpan permanen. Aplikasi ini murni media pembelajaran untuk mendeteksi Ego Sektoral.</p>
+            </div>
+
+            <button onclick="saveNameAndProceed()" class="btn-start">
+                Verifikasi & Mulai Misi
+            </button>
+        </div>
+        
+        <p class="mt-12 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+            Runtuhkan Ego Strultural v2.0
+        </p>
+    </div>
+
+    <!-- SCREEN 1: CHAT LIST (BERANDA) -->
+    <div id="home-view" class="flex flex-col h-full bg-white hidden-view">
+        <div id="flow-hint" class="flow-hint-bar hidden">
+            <i class="fas fa-lightbulb text-yellow-900"></i>
+            <span id="hint-content">Baca pesan dari Pak Jaya (Direksi) terlebih dahulu.</span>
+        </div>
+        
+        <div class="wa-header">
+            <div class="flex justify-between items-center w-full text-white">
+                <span class="text-xl font-bold">WhatsApp</span>
+                <div class="flex gap-6 text-lg">
+                    <i class="fas fa-search"></i>
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+            </div>
+        </div>
+        <div class="wa-tabs text-white">
+            <div class="p-3 w-12 flex justify-center items-center opacity-70"><i class="fas fa-camera text-sm"></i></div>
+            <div class="wa-tab active">Chat</div>
+            <div class="wa-tab">Status</div>
+            <div class="wa-tab">Panggilan</div>
+        </div>
+        <div class="chat-list-container flex-grow overflow-y-auto">
+            <!-- Pak Jaya Chat -->
+            <div onclick="openJayaChat()" id="jaya-chat-item" class="flex items-center p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer border-b border-gray-50 bg-green-50/10">
+                <img src="https://ui-avatars.com/api/?name=Pak+Jaya&background=075e54&color=fff&bold=true" class="avatar" alt="PJ">
+                <div class="flex-grow border-b border-gray-100 pb-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-[15px]">Pak Jaya (Direksi)</h3>
+                        <span id="jaya-time" class="text-xs text-green-600 font-bold">Baru</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p id="jaya-snippet" class="text-sm text-gray-800 font-bold truncate w-56">Tolong baca instruksi misi...</p>
+                        <span id="jaya-unread" class="bg-green-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Chat -->
+            <div onclick="checkProjectAccess()" id="project-chat-item" class="flex items-center p-4 hover:bg-gray-50 border-b border-gray-50 bg-gray-50/50 locked-chat cursor-not-allowed">
+                <img src="https://ui-avatars.com/api/?name=JKT&background=008069&color=fff&bold=true" class="avatar" alt="JKT">
+                <div class="flex-grow border-b border-gray-100 pb-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-[15px]">Project Promo Cab. JKT 1 🇮🇩</h3>
+                        <span class="text-xs text-gray-400">Tadi</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p id="project-snippet" class="text-sm text-gray-400 truncate w-56 italic">Selesaikan instruksi Pak Jaya dulu...</p>
+                        <i id="project-lock-icon" class="fas fa-lock text-gray-300 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center p-4 opacity-70 border-b border-gray-50">
+                <img src="https://ui-avatars.com/api/?name=Istri&background=e91e63&color=fff" class="avatar" alt="Istri">
+                <div class="flex-grow pb-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-900 text-[15px]">Istri ❤️</h3>
+                        <span class="text-xs text-gray-400">09:30</span>
+                    </div>
+                    <p class="text-sm text-gray-400 truncate w-60">Pa, titip token listrik ya...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: JAYA CHAT VIEW -->
+    <div id="jaya-view" class="flex flex-col h-full hidden-view chat-bg-pattern">
+        <header class="wa-header shadow-md z-20 text-white">
+            <div id="jaya-back-wrap" class="mr-1 flex items-center p-1">
+                <i id="jaya-back-btn" onclick="backToHome()" class="fas fa-arrow-left text-lg mr-1 cursor-pointer p-2 rounded-full"></i>
+                <img src="https://ui-avatars.com/api/?name=Pak+Jaya&background=075e54&color=fff&bold=true" class="w-10 h-10 rounded-full border border-white/20 shadow-inner" alt="PJ">
+            </div>
+            <div class="flex-grow ml-1 overflow-hidden">
+                <h1 class="font-bold text-[15px] leading-tight truncate">Pak Jaya (Direksi)</h1>
+                <p class="text-[11px] text-teal-50 opacity-90 truncate font-medium">Online</p>
+            </div>
+            <div class="flex gap-5 opacity-90 text-lg mr-1 text-white">
+                <i class="fas fa-video"></i>
+                <i class="fas fa-phone"></i>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+        </header>
+
+        <div id="jaya-hint-bar" class="flow-hint-bar hidden">
+            <i class="fas fa-lightbulb"></i>
+            <span id="jaya-hint-content">Baca instruksi dari Pak Jaya...</span>
+        </div>
+
+        <main id="jaya-chat-container" class="chat-scroll-area">
+            <!-- Jaya Messages -->
+        </main>
+        
+        <div id="jaya-input-bar" class="wa-input-container hidden">
+            <div class="wa-input-wrapper">
+                <i class="far fa-laugh text-gray-500 text-xl"></i>
+                <div id="jaya-input-text" class="wa-input-text"></div>
+            </div>
+            <div onclick="sendJayaManual()" class="wa-send-btn">
+                <i class="fas fa-paper-plane text-lg"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: PROJECT CHAT VIEW -->
+    <div id="game-view" class="flex flex-col h-full hidden-view chat-bg-pattern">
+        <header class="wa-header shadow-md z-20 text-white">
+            <div onclick="backToHome()" class="mr-1 flex items-center cursor-pointer p-1 text-white">
+                <i class="fas fa-arrow-left text-lg mr-1 text-white"></i>
+                <img src="https://ui-avatars.com/api/?name=JKT&background=00a884&color=fff&bold=true" class="w-10 h-10 rounded-full border border-white/20 shadow-inner" alt="JKT">
+            </div>
+            <div class="flex-grow ml-1 overflow-hidden">
+                <h1 class="font-bold text-[15px] leading-tight truncate">Project Promo Cab. JKT 1</h1>
+                <p id="group-subtitle" class="text-[11px] text-teal-50 opacity-90 truncate font-medium">Daftar Manajer...</p>
+            </div>
+            <div class="flex gap-4 opacity-90 text-lg mr-1">
+                <i class="fas fa-video"></i>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+        </header>
+
+        <div id="mission-ui" class="mission-hint shadow-sm">
+            <div class="flex items-start gap-3 mb-2 text-left">
+                <div class="bg-amber-500 text-white p-2 rounded-lg shadow-sm"><i class="fas fa-tasks text-[12px]"></i></div>
+                <div class="flex-grow">
+                    <h4 class="text-[11px] font-black text-amber-800 uppercase tracking-tighter text-left">Mission: Runtuhkan Silo</h4>
+                    <p class="text-[10px] text-amber-900 leading-tight font-medium">Cari pesan bernada <b>Silo</b> dan berikan balasan taktik agar tim kembali fokus ke visi perusahaan.</p>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mb-1 px-1">
+                <span class="text-[8px] font-bold text-teal-800 uppercase tracking-wider">Status Intervensi</span>
+                <span id="score-text" class="text-[10px] font-bold text-teal-900 uppercase">0/6 Terselesaikan</span>
+            </div>
+            <div class="w-full bg-teal-100 rounded-full h-1.5 overflow-hidden border border-teal-200">
+                <div id="silo-meter" class="bg-teal-600 h-full w-0 transition-all duration-700"></div>
+            </div>
+        </div>
+
+        <div id="project-hint-bar" class="flow-hint-bar hidden">
+            <i class="fas fa-lightbulb"></i>
+            <span id="project-hint-content">Kirim pesan pembukaan diskusi...</span>
+        </div>
+
+        <main id="chat-container" onclick="handleChatAreaClick(event)" class="chat-scroll-area">
+            <!-- Project Messages -->
+        </main>
+
+        <div id="project-input-bar" class="wa-input-container">
+            <div class="wa-input-wrapper">
+                <i class="far fa-laugh text-gray-500 text-xl"></i>
+                <div id="project-input-text" class="wa-input-text"></div>
+            </div>
+            <div onclick="sendProjectManual()" class="wa-send-btn">
+                <i class="fas fa-paper-plane text-lg"></i>
+            </div>
+        </div>
+
+        <div id="response-overlay" class="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-[250] p-6 hidden-view" onclick="event.stopPropagation()">
+            <div onclick="closeResponseOverlay()" class="w-16 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 cursor-pointer"></div>
+            <div id="reply-preview-context" class="mb-4 bg-gray-50 border-l-4 border-teal-600 p-3 rounded-lg text-[11px] text-gray-500 italic shadow-sm">Membalas...</div>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[14px] font-black text-gray-800 tracking-tight text-left">Respon Manager:</h3>
+                <button onclick="closeResponseOverlay()" class="text-[10px] font-bold text-red-500 uppercase px-2 py-1 border border-red-100 rounded bg-red-50">Batal</button>
+            </div>
+            <div id="response-options" class="space-y-3 mb-2"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * --- GLOBAL HELPERS (DEFINED AT THE TOP) ---
+         */
+        function vibrate(pattern) {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(pattern);
+            }
+        }
+
+        function getTimeString() {
+            const d = new Date();
+            return d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+        }
+
+        function getGreeting() {
+            const hr = new Date().getHours();
+            if (hr >= 5 && hr < 11) return "Pagi";
+            if (hr >= 11 && hr < 15) return "Siang";
+            if (hr >= 15 && hr < 19) return "Sore";
+            return "Malam";
+        }
+
+        /**
+         * --- AUDIO ENGINE ---
+         */
+        const AudioEngine = {
+            ctx: null,
+            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+            playTone(freq, type, duration, vol = 0.1) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.connect(this.ctx.destination);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                osc.start(); osc.stop(this.ctx.currentTime + duration);
+            },
+            incoming() { this.playTone(880, 'sine', 0.15, 0.1); setTimeout(() => this.playTone(1046, 'sine', 0.2, 0.08), 50); },
+            sent() { this.playTone(600, 'sine', 0.05, 0.1); },
+            success() { this.playTone(523, 'sine', 0.1); setTimeout(() => this.playTone(659, 'sine', 0.1), 100); setTimeout(() => this.playTone(783, 'sine', 0.2), 200); },
+            error() { this.playTone(220, 'triangle', 0.3, 0.15); }
+        };
+
+        /**
+         * --- GLOBAL STATE ---
+         */
+        let playerName = "Manager";
+        let isJayaTaskDone = false;
+        let isJayaReplySent = false;
+        let isProjectStarted = false;
+        let isOpeningMessageSent = false;
+        let foundSilos = 0;
+        let chatIdx = 0;
+        let isPaused = false;
+        let isInitialRenderDone = false;
+        let errorsCount = 0;
+        const namesInGroup = "Pak Andre, Bu Sari, Pak Budi, Bu Rina, Pak Dani, Bu Mia, Pak Surya";
+
+        const chatMessages = [
+            { id: 101, name: "Pak Andre (Mgr. Marketing)", text: "Ijin update, campaign 'Merdeka Sale' kick-off minggu depan. Mohon support percepatan dari masing-masing ya.", isSilo: false },
+            { id: 102, name: "Bu Sari (Mgr. IT)", text: "Maaf Pak Andre, dari IT masih progress integrasi API. Ada kendala server saat ini, tim lagi usahakan.", isSilo: false },
+            { id: 1, name: "Pak Andre (Mgr. Marketing)", text: "Waduh Bu, jangan kelamaan. Kalau IT telat nanti campaign SAYA bisa berantakan. Target sales SAYA harus tembus 100% bulan ini, saya nggak mau tahu API IT harus kelar besok!", isSilo: true, responses: [
+                { text: `Pak Andre sabar, jangan egois gitu. Kita semua kan kerja.`, type: "wrong", replies: [{ name: "Pak Andre", text: `Maaf Pak {player}, tapi target saya terancam. IT lambat sekali.` }] },
+                { text: `Tenang Pak Andre. Mari fokus ke Shared Goal: Pengalaman belanja terbaik buat pelanggan kita.`, type: "correct", feedback: "Shared Goal menarik kembali fokus ke misi besar perusahaan.", replies: [
+                    { name: "Pak Andre", text: `Iya juga ya Pak {player}. Maaf Bu Sari, saya panik. Apa yang bisa tim kami bantu?` },
+                    { name: "Bu Sari", text: `Nggak apa-apa Pak Andre, kami paham. Kami kebut integrasinya secepatnya.` }
+                ]}
+            ]},
+            { id: 2, name: "Bu Mia (Mgr. Legal)", text: "Terkait promo Merdeka, saya belum bisa approve draf S&K ya. Banyak poin belum sesuai kepatuhan baru. Antre revisi 3-5 hari ya.", isSilo: true, responses: [
+                { text: `Bu Mia, apa blocker terbesar di draf itu yang bisa kami bantu perbaiki hari ini?`, type: "correct", feedback: "Open Mapping membantu rekan kerja mengatasi hambatan.", replies: [{ name: "Bu Mia", text: `Refund-nya aja Pak {player}. Kalau Marketing bantu ganti bahasanya sekarang, sore ini beres.` }] },
+                { text: `Legal jangan kaku lah Bu. Project urgent kok harus antre normal?`, type: "wrong", replies: [{ name: "Bu Mia", text: `Prosedur ini buat keamanan kita semua, Pak {player}.` }] }
+            ]},
+            { id: 3, name: "Pak Surya (Mgr. Logistik)", text: "Mohon maaf, saya nggak bisa kirim stok tambahan kalau tim Ops belum kasih rekap data pallet. Itu SOP Gudang.", isSilo: true, responses: [
+                { text: `Mari kita buat Dashboard Bersama agar data pallet transparan bagi Logistik & Ops tiap hari.`, type: "correct", feedback: "Single Source of Truth merobohkan kecurigaan antar departemen.", replies: [
+                    { name: "Pak Surya", text: `Wah, setuju Pak {player}. Jadi saya nggak perlu nagih-nagih manual lagi.` },
+                    { name: "Pak Budi", text: `Siap Pak Surya! Kami input datanya segera ya.` }
+                ]},
+                { text: `Pak Surya fleksibel dikit lah, ini kan darurat promo Merdeka.`, type: "wrong", replies: [{ name: "Pak Surya", text: `Nanti kalau selisih stoknya banyak, siapa yang tanggung jawab Pak {player}?` }] }
+            ]},
+            { id: 4, name: "Bu Rina (Mgr. Finance)", text: "Data budget promo sebelumnya rahasia ya. Silakan ijin Direksi kalau mau akses datanya di grup.", isSilo: true, responses: [
+                { text: `Bu Rina, data apa yang Ibu butuhkan dari tim agar budget Merdeka aman secara compliance?`, type: "correct", feedback: "Membangun rasa aman bagi Finance membantu data lebih terbuka.", replies: [{ name: "Bu Rina", text: `Cukup memo project ini aja Pak {player}. Kalau ada itu, saya buka aksesnya sekarang.` }] },
+                { text: `Bu Rina pelit amat datanya. Kita kan mau evaluasi biar budget nggak boncos.`, type: "wrong", replies: [{ name: "Bu Rina", text: `Ini soal audit perusahaan, bukan soal pelit atau tidak Pak {player}.` }] }
+            ]},
+            { id: 5, name: "Pak Dani (Mgr. Area JKT 1)", text: `Selamat ${getGreeting()}. Langsung saja ya, khusus stok susu promo, amankan buat Toko Sudirman dulu. Gak usah dibagi-bagi ke toko kecil yang gak jelas penjualannya. Sudirman itu wajah kita. Toko lain bisa nunggu kloter berikutnya saja.`, isSilo: true, responses: [
+                { text: `Pak Dani, mari pastikan distribusi stok ini merata demi profit perusahaan secara total, bukan demi gengsi satu toko saja.`, type: "correct", feedback: "Menarik perspektif ego ke arah sukses kolektif.", replies: [{ name: "Pak Dani", text: "Maksud saya justru demi profit Pak {player}. Di Sudirman itu traffic-nya tinggi sekali. Kalau stoknya dipencar ke toko kecil yang gak jelas, malah jadi stok mati. Sayang barangnya!" }] },
+                { text: `Bapak jangan pilih kasih, toko kecil juga butuh jualan biar berkembang.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Gak bisa gitu Pak {player}. Bisnis itu harus realistis, kasih barang ke yang pasti laku!" }] }
+            ]},
+            { id: 6, name: "Pak Dani (Mgr. Area JKT 1)", text: "Saya tetap gak setuju kalau Sudirman dikurangi stoknya cuma gara-gara mau pemerataan ke toko-toko kecil yang potensinya belum terbukti. Saya mau amankan target omzet total lewat JKT 1!", isSilo: true, responses: [
+                { text: `Kita gunakan sistem transfer antar-toko yang dinamis. Jika stok di Sudirman menipis lebih cepat, Logistik langsung tarik stok dari toko kecil terdekat dalam 2 jam.`, type: "correct", feedback: "Solusi jaminan keamanan bagi target individu dan kolektif.", replies: [
+                    { name: "Pak Dani", text: "Nah, kalau ada jaminan rotasi cepat seperti itu, saya bisa tenang Pak {player}. Maaf saya agak keras di awal. Oke, saya ikut sistem." },
+                    { name: "Pak Surya", text: "Noted Pak Dani! Armada gudang kami stand by khusus buat rotasi cepat antar toko." },
+                    { name: "Pak Andre", text: "Sip! Strategi promo kita bisa jalan di semua lini sekarang!" }
+                ]},
+                { text: `Bapak harus ikut profesional, jangan cuma pikirkan JKT 1 saja.`, type: "wrong", replies: [{ name: "Pak Dani", text: "Bukannya membantah Pak {player}, saya cuma mau menyelamatkan angka penjualan kita!" }] }
+            ]}
+        ];
+
+        const totalSilos = chatMessages.filter(m => m.isSilo).length;
+
+        /**
+         * --- UI FUNCTIONS ---
+         */
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.innerText = text; t.style.opacity = '1';
+            setTimeout(() => { if(t) t.style.opacity = '0'; }, 3000);
+        }
+
+        function setHint(text, barId = 'flow-hint', contentId = 'hint-content') {
+            const bar = document.getElementById(barId);
+            const content = document.getElementById(contentId);
+            if (!bar || !content) return;
+            if (text) { bar.classList.remove('hidden'); content.innerText = text; }
+            else { bar.classList.add('hidden'); }
+        }
+
+        function backToHome() {
+            vibrate(30);
+            document.getElementById('jaya-view').classList.add('hidden-view');
+            document.getElementById('game-view').classList.add('hidden-view');
+            document.getElementById('home-view').classList.remove('hidden-view');
+            document.getElementById('jaya-back-btn').classList.remove('blink-back');
+            
+            if (isJayaReplySent && !isProjectStarted) {
+                setHint("Sekarang, buka Grup Project Promo untuk meruntuhkan tembok silo di sana!");
+            }
+            if (isProjectStarted) {
+                const snip = document.getElementById('project-snippet');
+                if (snip) snip.innerText = `${playerName} (Anda): Kesepakatan Diskusi...`;
+                setHint("");
+            }
+        }
+
+        function checkProjectAccess() {
+            if (!isJayaReplySent) { 
+                vibrate([100, 50, 100]);
+                showToast("Selesaikan instruksi Pak Jaya (Direksi) terlebih dahulu!"); 
+            } else { 
+                openProjectChat(); 
+            }
+        }
+
+        function openProjectChat() {
+            vibrate(50);
+            document.getElementById('home-view').classList.add('hidden-view');
+            document.getElementById('game-view').classList.remove('hidden-view');
+            setHint(""); 
+            if (!isInitialRenderDone) renderInitialProjectState();
+        }
+
+        /**
+         * --- LOGIC: SAVE NAME ---
+         */
+        function saveNameAndProceed() {
+            const input = document.getElementById('player-name-input');
+            if (!input || input.value.trim().length < 2) { 
+                vibrate([50, 100, 50]);
+                showToast("Masukkan nama panggilan Anda!"); 
+                return; 
+            }
+            playerName = input.value.trim();
+            AudioEngine.init();
+            document.getElementById('verify-view').classList.add('hidden-view');
+            document.getElementById('home-view').classList.remove('hidden-view');
+            setHint("Baca pesan dari Pak Jaya (Direksi) terlebih dahulu untuk menerima instruksi misi.");
+            vibrate(50);
+            AudioEngine.sent();
+        }
+
+        /**
+         * --- JAYA CHAT FLOW ---
+         */
+        function openJayaChat() {
+            vibrate(50);
+            document.getElementById('home-view').classList.add('hidden-view');
+            document.getElementById('jaya-view').classList.remove('hidden-view');
+            if (!isJayaTaskDone) renderJayaSimulation();
+            else {
+                if (!isJayaReplySent) setHint("Klik tombol Kirim (hijau) di bawah untuk membalas Pak Jaya.", "jaya-hint-bar", "jaya-hint-content");
+                else setHint("Instruksi diterima. Klik tombol kembali kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
+            }
+        }
+
+        async function renderJayaSimulation() {
+            isJayaTaskDone = true;
+            const container = document.getElementById('jaya-chat-container');
+            const gr = getGreeting();
+            const messages = [
+                `${gr} ${playerName}, saya banyak terima laporan soal kondisi Cabang JKT 1 belakangan ini.`,
+                "Saya mendeteksi adanya tindakan Silo Ego Sektoral antar Manager di sana yang mulai menghambat operasional.",
+                `Saya perintahkan kamu untuk kawal Project Promo kali ini. Pastikan tidak ada lagi hal-hal berbau Silo Ego, ${playerName}.`,
+                "Ingat, perusahaan kita adalah satu tim yang solid. Semua harus bekerja sama tanpa kecuali."
+            ];
+
+            setHint("Harap baca instruksi Direksi...", "jaya-hint-bar", "jaya-hint-content");
+
+            for (let msg of messages) {
+                await new Promise(r => setTimeout(r, 1200 + msg.length * 5));
+                AudioEngine.incoming();
+                const bubble = document.createElement('div');
+                bubble.className = "message-bubble msg-left";
+                bubble.innerHTML = `<p class="text-sm text-gray-800 text-normal">${msg}</p><p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>`;
+                bubble.onclick = () => { vibrate(40); showToast("Pesan ini sudah sesuai."); };
+                container.appendChild(bubble);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            document.getElementById('jaya-input-bar').classList.remove('hidden');
+            document.getElementById('jaya-input-text').innerText = "Siap Pak Jaya, bisa saya laksanakan. Tugas akan saya jalankan maksimal untuk meruntuhkan ego sektoral di Cab JKT 1.";
+            setHint("Klik tombol Kirim (hijau) di bawah untuk membalas Pak Jaya.", "jaya-hint-bar", "jaya-hint-content");
+        }
+
+        async function sendJayaManual() {
+            if (isJayaReplySent) return;
+            isJayaReplySent = true;
+            vibrate(60);
+            AudioEngine.sent();
+            const container = document.getElementById('jaya-chat-container');
+            const replyText = document.getElementById('jaya-input-text').innerText;
+            
+            const bubble = document.createElement('div');
+            bubble.className = "message-bubble msg-right";
+            bubble.innerHTML = `<p class="text-sm text-gray-800 text-normal">${replyText}</p><p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()} <i class="fas fa-check-double text-blue-400"></i></p>`;
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+            
+            document.getElementById('jaya-input-bar').classList.add('hidden');
+            document.getElementById('jaya-unread').classList.add('hidden');
+            document.getElementById('jaya-snippet').innerText = "Siap Pak Jaya, bisa saya laksanakan.";
+            document.getElementById('jaya-snippet').classList.remove('font-bold');
+            
+            const projectItem = document.getElementById('project-chat-item');
+            projectItem.classList.remove('locked-chat', 'cursor-not-allowed');
+            projectItem.classList.add('bg-green-50/10');
+            document.getElementById('project-snippet').innerText = "Pak Andre (Mgr. Marketing): Ijin diskusi...";
+            document.getElementById('project-snippet').classList.remove('italic');
+            document.getElementById('project-lock-icon').className = "fas fa-check text-green-500 text-xs";
+
+            document.getElementById('jaya-back-btn').classList.add('blink-back');
+            setHint("Instruksi diterima. Klik tombol kembali kembali di pojok atas untuk memulai misi.", "jaya-hint-bar", "jaya-hint-content");
+        }
+
+        /**
+         * --- PROJECT CHAT FLOW ---
+         */
+        async function renderInitialProjectState() {
+            isInitialRenderDone = true;
+            const container = document.getElementById('chat-container');
+            container.innerHTML = `
+                <div class="date-divider"><span>Kemarin</span></div>
+                <div class="message-bubble msg-left" onclick="vibrate(40); showToast('Pesan ini sudah sesuai.')">
+                    <p class="text-[10px] font-bold text-teal-700 mb-1">Pak Andre (Mgr. Marketing)</p>
+                    <p class="text-sm text-gray-800 leading-snug text-normal">Pak, mohon ijin nanti diskusi soal promo di grup ya.</p>
+                    <p class="text-[9px] text-gray-400 text-right mt-1">16:30</p>
+                </div>
+                <div class="date-divider"><span>Hari Ini</span></div>
+            `;
+            
+            const gr = getGreeting();
+            document.getElementById('project-input-text').innerText = `${gr} bapak/ibu semua. Ijin buka diskusi untuk persiapan Promo Cab. JKT 1 kita ya. 🙏`;
+            setHint("Kirim pesan pembukaan diskusi grup untuk memulai simulasi.", "project-hint-bar", "project-hint-content");
+        }
+
+        async function sendProjectManual() {
+            if (isOpeningMessageSent) return;
+            isOpeningMessageSent = true;
+            vibrate(60);
+            AudioEngine.sent();
+            const container = document.getElementById('chat-container');
+            const replyText = document.getElementById('project-input-text').innerText;
+            
+            const myBubble = document.createElement('div');
+            myBubble.className = `message-bubble msg-right`;
+            myBubble.innerHTML = `
+                <p class="text-[10px] font-bold text-green-700 mb-1">${playerName} (Anda)</p>
+                <p class="text-sm text-gray-800 font-medium text-left text-normal">${replyText}</p>
+                <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()} <i class="fas fa-check-double text-blue-400"></i></p>
+            `;
+            container.appendChild(myBubble);
+            container.scrollTop = container.scrollHeight;
+            
+            document.getElementById('project-input-bar').classList.add('hidden');
+            setHint("", "project-hint-bar");
+            isProjectStarted = true;
+            await runGreetings();
+            startSimulation();
+        }
+
+        async function runGreetings() {
+            const container = document.getElementById('chat-container');
+            const subtitle = document.getElementById('group-subtitle');
+            const greetings = [
+                { n: "Pak Andre (Mgr. Marketing)", t: `Siap, monitor Pak ${playerName}. 👍` },
+                { n: "Pak Dani (Area JKT 1)", t: `Monitor.` },
+                { n: "Bu Sari (Mgr. IT)", t: `Siap monitor Pak ${playerName}.` },
+                { n: "Pak Budi (Mgr. Ops)", t: "💪", s: true }
+            ];
+            for (let g of greetings) {
+                subtitle.innerHTML = `<span class="italic text-teal-50">${g.n.split(' (')[0]} mengetik...</span>`;
+                await new Promise(r => setTimeout(r, 1000 + (g.t.length * 5)));
+                AudioEngine.incoming();
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble msg-left ${g.s ? 'sticker-msg' : ''}`;
+                bubble.onclick = () => { vibrate(40); showToast("Pesan ini sudah sesuai."); };
+                bubble.innerHTML = `
+                    ${!g.s ? `<p class="text-[10px] font-bold text-teal-700 mb-1">${g.n}</p>` : ''}
+                    <p class="${g.s ? 'text-[40px]' : 'text-sm'} text-gray-800 leading-tight text-left text-normal">${g.t}</p>
+                    <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
+                `;
+                container.appendChild(bubble);
+                container.scrollTop = container.scrollHeight;
+            }
+            subtitle.innerText = namesInGroup;
+        }
+
+        async function startSimulation() {
+            const container = document.getElementById('chat-container');
+            const subtitle = document.getElementById('group-subtitle');
+            while (chatIdx < chatMessages.length) {
+                if (isPaused || !isProjectStarted) { await new Promise(r => setTimeout(r, 500)); continue; }
+                const msg = chatMessages[chatIdx];
+                if (msg.id === 6) { chatIdx++; continue; }
+                
+                subtitle.innerHTML = `<span class="italic text-teal-50">${msg.name.split(' (')[0]} mengetik...</span>`;
+                await new Promise(r => setTimeout(r, 1200 + (msg.text.length * 8)));
+                if (!isProjectStarted) break;
+                AudioEngine.incoming();
+                subtitle.innerText = namesInGroup;
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble msg-left ${msg.isSilo ? 'silo-target' : ''}`;
+                bubble.id = `msg-${msg.id}`;
+                bubble.innerHTML = `
+                    <p class="text-[10px] font-bold text-teal-700 mb-1">${msg.name}</p>
+                    <p class="text-sm text-gray-800 leading-snug text-left text-normal">${msg.text.replace(/{player}/g, playerName)}</p>
+                    <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
+                `;
+                bubble.onclick = (e) => { e.stopPropagation(); handleMessageClick(msg); };
+                container.appendChild(bubble);
+                container.scrollTop = container.scrollHeight;
+                chatIdx++;
+                await new Promise(r => setTimeout(r, 1200));
+            }
+        }
+
+        function handleMessageClick(msg) {
+            if (!msg.isSilo) { vibrate(40); showToast("Pesan ini sudah sesuai."); return; }
+            const bubble = document.getElementById(`msg-${msg.id}`);
+            if (bubble.dataset.completed) { vibrate(40); showToast("Pesan ini sudah terintervensi."); return; }
+            showResponseSelection(msg);
+        }
+
+        function handleChatAreaClick(e) {
+            const overlay = document.getElementById('response-overlay');
+            if (overlay && overlay.classList.contains('active')) closeResponseOverlay();
+        }
+
+        function showResponseSelection(msg) {
+            isPaused = true;
+            const overlay = document.getElementById('response-overlay');
+            const optionsContainer = document.getElementById('response-options');
+            const preview = document.getElementById('reply-preview-context');
+            const cleanName = msg.name.split(' (')[0];
+            preview.innerHTML = `<span class="font-bold text-teal-700 text-left block">${cleanName}:</span><br>"${msg.text.substring(0, 50)}..."`;
+            
+            optionsContainer.innerHTML = '';
+            msg.responses.forEach((resp) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 border border-gray-100 rounded-2xl text-[13px] bg-gray-50 active:bg-teal-50 shadow-sm transition-all font-medium leading-snug";
+                btn.innerText = resp.text.replace(/{player}/g, playerName);
+                btn.onclick = (e) => { e.stopPropagation(); selectResponse(msg, resp); };
+                optionsContainer.appendChild(btn);
+            });
+            overlay.classList.remove('hidden-view');
+            setTimeout(() => overlay.classList.add('active'), 10);
+        }
+
+        function closeResponseOverlay() {
+            const overlay = document.getElementById('response-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => { overlay.classList.add('hidden-view'); isPaused = false; }, 400);
+        }
+
+        async function selectResponse(originalMsg, resp) {
+            const overlay = document.getElementById('response-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.classList.add('hidden-view'), 400);
+            const container = document.getElementById('chat-container');
+            const subtitle = document.getElementById('group-subtitle');
+            
+            vibrate(60);
+            AudioEngine.sent();
+            const myBubble = document.createElement('div');
+            myBubble.className = `message-bubble msg-right ${resp.type === 'correct' ? 'border border-green-300' : 'border border-red-300 shake'}`;
+            myBubble.onclick = () => { vibrate(40); showToast("Pesan ini sudah sesuai."); };
+            const cleanName = originalMsg.name.split(' (')[0];
+            
+            myBubble.innerHTML = `
+                <div class="reply-box">
+                    <span class="reply-name">${cleanName}</span>
+                    <span class="truncate">${originalMsg.text.replace(/{player}/g, playerName)}</span>
+                </div>
+                <p class="text-sm text-gray-800 text-left text-normal">${resp.text.replace(/{player}/g, playerName)}</p>
+                ${resp.feedback ? `<div class="mt-2 p-2 bg-white/60 border border-gray-100 rounded text-[11px] text-gray-600 italic"><b>Insight:</b> ${resp.feedback}</div>` : ''}
+                <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()} <i class="fas fa-check-double text-blue-400"></i></p>
+            `;
+            container.appendChild(myBubble);
+            container.scrollTop = container.scrollHeight;
+
+            if (resp.type === 'correct') {
+                vibrate(50); AudioEngine.success();
+                for (let reply of resp.replies) {
+                    const processedText = reply.text.replace(/{player}/g, playerName);
+                    subtitle.innerHTML = `<span class="italic text-teal-50">${reply.name.split(' (')[0]} membalas...</span>`;
+                    await new Promise(r => setTimeout(r, 2000));
+                    AudioEngine.incoming();
+                    const replyBubble = document.createElement('div');
+                    replyBubble.className = `message-bubble msg-left`;
+                    replyBubble.onclick = () => { vibrate(40); showToast("Pesan ini sudah sesuai."); };
+                    replyBubble.innerHTML = `
+                        <p class="text-[10px] font-bold text-teal-700 mb-1">${reply.name}</p>
+                        <p class="text-sm text-gray-800 leading-snug text-left text-normal">${processedText}</p>
+                        <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
+                    `;
+                    container.appendChild(replyBubble);
+                    container.scrollTop = container.scrollHeight;
+                }
+                foundSilos++;
+                updateProgress();
+                const siloMsg = document.getElementById(`msg-${originalMsg.id}`);
+                siloMsg.dataset.completed = "true";
+                
+                const marker = document.createElement('div');
+                marker.className = "completed-marker";
+                marker.innerHTML = '<i class="fas fa-check-circle"></i> [Intervensi Berhasil]';
+                siloMsg.appendChild(marker);
+
+                if (originalMsg.id === 5) {
+                    isPaused = true;
+                    await new Promise(r => setTimeout(r, 1200));
+                    const msg6 = chatMessages.find(m => m.id === 6);
+                    subtitle.innerHTML = `<span class="italic text-teal-50">Dani mengetik...</span>`;
+                    await new Promise(r => setTimeout(r, 2500));
+                    AudioEngine.incoming();
+                    const bubble6 = document.createElement('div');
+                    bubble6.className = `message-bubble msg-left silo-target`;
+                    bubble6.id = `msg-6`;
+                    bubble6.onclick = (e) => { e.stopPropagation(); handleMessageClick(msg6); };
+                    bubble6.innerHTML = `
+                        <p class="text-[10px] font-bold text-teal-700 mb-1">Pak Dani (Mgr. Area JKT 1)</p>
+                        <p class="text-sm text-gray-800 leading-snug text-left text-normal">${msg6.text.replace(/{player}/g, playerName)}</p>
+                        <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
+                    `;
+                    container.appendChild(bubble6);
+                    container.scrollTop = container.scrollHeight;
+                }
+                isPaused = false;
+            } else {
+                vibrate([150, 50, 150]); AudioEngine.error(); errorsCount++;
+                for (let reply of resp.replies) {
+                    const processedText = reply.text.replace(/{player}/g, playerName);
+                    const replyBubble = document.createElement('div');
+                    replyBubble.className = `message-bubble msg-left`;
+                    replyBubble.onclick = () => { vibrate(100); showToast("Kurang tepat, emosi rekan tersulut."); };
+                    replyBubble.innerHTML = `
+                        <p class="text-[10px] font-bold text-red-700 mb-1">${reply.name}</p>
+                        <p class="text-sm text-gray-800 leading-snug text-left text-normal">${processedText}</p>
+                        <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
+                    `;
+                    container.appendChild(replyBubble);
+                    container.scrollTop = container.scrollHeight;
+                }
+                const retryBtn = document.createElement('button');
+                retryBtn.className = "text-[11px] text-red-600 font-bold mt-2 underline block";
+                retryBtn.innerText = "Coba strategi lain...";
+                retryBtn.onclick = (e) => {
+                    e.stopPropagation(); vibrate(50); myBubble.remove();
+                    const allBubbles = container.querySelectorAll('.message-bubble');
+                    let removedCount = 0;
+                    for (let i = allBubbles.length - 1; i >= 0; i--) {
+                        if (removedCount < resp.replies.length) { allBubbles[i].remove(); removedCount++; }
+                    }
+                    showResponseSelection(originalMsg);
+                };
+                container.lastElementChild.appendChild(retryBtn);
+            }
+            subtitle.innerText = namesInGroup;
+        }
+
+        async function updateProgress() {
+            const percentage = (foundSilos / totalSilos) * 100;
+            const meter = document.getElementById('silo-meter');
+            if (meter) meter.style.width = `${percentage}%`;
+            const scoreText = document.getElementById('score-text');
+            if (scoreText) scoreText.innerText = `${foundSilos}/${totalSilos} Terselesaikan`;
+            if (foundSilos === totalSilos) finalizeDiscussion();
+        }
+
+        async function finalizeDiscussion() {
+            const container = document.getElementById('chat-container');
+            const subtitle = document.getElementById('group-subtitle');
+            await new Promise(r => setTimeout(r, 2000));
+            subtitle.innerHTML = `<span class="italic text-teal-50">Mengetik ringkasan...</span>`;
+            
+            const summary = [
+                `Luar biasa tim! Makasih atas kedewasaannya hari ini. Senang kita bisa sepakat demi target besar Cabang JKT 1.`,
+                `📌 RINGKASAN KESEPAKATAN:\n1. Shared Goal: Fokus kepuasan pelanggan JKT 1.\n2. IT & Marketing: Data mapping masuk segera.\n3. Compliance: Revisi draf S&K kelar hari ini.\n4. Transparency: Dashboard monitor dibuka bersama.\n5. Equity: Distribusi stok dinamis via transfer antar toko.\n\nProject Merdeka siap Kick-Off! 🚀`,
+            ];
+            for (let text of summary) {
+                await new Promise(r => setTimeout(r, 1500));
+                vibrate(40); AudioEngine.sent();
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble msg-right`;
+                bubble.onclick = () => { vibrate(30); showToast("Pesan ini sudah sesuai."); };
+                bubble.innerHTML = `<p class="text-sm text-gray-800 font-medium text-left text-normal">${text.replace(/\n/g, '<br>')}</p><p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()} <i class="fas fa-check-double text-blue-400"></i></p>`;
+                container.appendChild(bubble);
+                container.scrollTop = container.scrollHeight;
+            }
+            AudioEngine.success();
+            
+            let feedbackTitle = errorsCount === 0 ? "Sempurna! Manager Teladan" : "Misi Berhasil!";
+            let feedbackMsg = errorsCount === 0 
+                ? "Luar biasa! Ketajaman deteksi Anda sempurna tanpa satu pun kesalahan. Cabang JKT 1 kini menjadi satu tim yang solid tanpa sekat!" 
+                : "Ups, masih ada beberapa kesalahan menjawab pesan tadi. Ketajaman deteksi ego sektoral Anda perlu diasah lagi agar kolaborasi tim lebih maksimal.";
+
+            const systemMsg = document.createElement('div');
+            systemMsg.className = "result-card";
+            systemMsg.innerHTML = `
+                <p class="font-black text-gray-800 uppercase tracking-tighter text-lg">🏆 ${feedbackTitle}</p>
+                <p class="text-[12px] text-gray-600 mt-3 px-2 leading-relaxed">${feedbackMsg}</p>
+                <button onclick="resetGame()" class="btn-restart-action">Mulai Ulang Misi</button>
+            `;
+            container.appendChild(systemMsg);
+            container.scrollTop = container.scrollHeight;
+            document.getElementById('mission-ui').classList.add('hidden-view');
+            subtitle.innerText = namesInGroup;
+        }
+
+        function resetGame() {
+            vibrate(80);
+            foundSilos = 0; chatIdx = 0; isPaused = false; isProjectStarted = false; 
+            isOpeningMessageSent = false; isInitialRenderDone = false; errorsCount = 0;
+            isJayaReplySent = false; isJayaTaskDone = false;
+            
+            document.getElementById('chat-container').innerHTML = '';
+            document.getElementById('jaya-chat-container').innerHTML = '';
+            const meter = document.getElementById('silo-meter');
+            if (meter) meter.style.width = '0%';
+            const scoreText = document.getElementById('score-text');
+            if (scoreText) scoreText.innerText = '0/6 Terselesaikan';
+            
+            document.getElementById('mission-ui').classList.remove('hidden-view');
+            document.getElementById('jaya-unread').classList.remove('hidden');
+            document.getElementById('jaya-snippet').innerText = "Tolong baca instruksi misi...";
+            document.getElementById('jaya-snippet').classList.add('font-bold');
+            
+            document.getElementById('project-input-bar').classList.remove('hidden');
+            document.getElementById('jaya-input-bar').classList.add('hidden');
+            
+            const projectItem = document.getElementById('project-chat-item');
+            if (projectItem) {
+                projectItem.classList.add('locked-chat', 'cursor-not-allowed');
+                projectItem.classList.remove('bg-green-50/10');
+                projectItem.querySelector('p').innerText = "Selesaikan instruksi Pak Jaya dulu...";
+                projectItem.querySelector('p').classList.add('italic');
+                const lockIcon = document.getElementById('project-lock-icon');
+                if (lockIcon) lockIcon.className = "fas fa-lock text-gray-300 text-xs";
+            }
+            
+            backToHome();
+            setHint("Baca pesan dari Pak Jaya (Direksi) terlebih dahulu untuk menerima instruksi misi.");
+        }
+
+    </script>
+</body>
+</html>
