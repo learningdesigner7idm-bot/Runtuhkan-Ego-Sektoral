@@ -738,6 +738,20 @@
 
         const totalSilos = chatMessages.filter(m => m.isSilo).length;
 
+        // Maps friendly short name → full name + jabatan for consistent bubble headers
+        const npcFullName = {
+            "Pak Andre":  "Pak Andre (Mgr. Marketing)",
+            "Bu Sari":    "Bu Sari (Mgr. IT)",
+            "Pak Budi":   "Pak Budi (Mgr. Ops)",
+            "Bu Rina":    "Bu Rina (Mgr. Finance)",
+            "Pak Dani":   "Pak Dani (Mgr. Area JKT 1)",
+            "Bu Mia":     "Bu Mia (Mgr. Legal)",
+            "Pak Surya":  "Pak Surya (Mgr. Logistik)",
+        };
+        function getFullName(shortName) {
+            return npcFullName[shortName] || shortName;
+        }
+
         /**
          * --- UI FUNCTIONS ---
          */
@@ -1084,7 +1098,7 @@
                     replyBubble.className = `message-bubble msg-left`;
                     replyBubble.onclick = () => { vibrate(40); showToast("Pesan ini sudah sesuai."); };
                     replyBubble.innerHTML = `
-                        <p class="text-[10px] font-bold text-teal-700 mb-1">${reply.name}</p>
+                        <p class="text-[10px] font-bold text-teal-700 mb-1">${getFullName(reply.name)}</p>
                         <p class="text-sm text-gray-800 leading-snug text-left text-normal">${processedText}</p>
                         <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
                     `;
@@ -1113,7 +1127,7 @@
                     bubble6.id = `msg-6`;
                     bubble6.onclick = (e) => { e.stopPropagation(); handleMessageClick(msg6); };
                     bubble6.innerHTML = `
-                        <p class="text-[10px] font-bold text-teal-700 mb-1">Pak Dani (Mgr. Area JKT 1)</p>
+                        <p class="text-[10px] font-bold text-teal-700 mb-1">${msg6.name}</p>
                         <p class="text-sm text-gray-800 leading-snug text-left text-normal">${applyGender(msg6.text)}</p>
                         <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
                     `;
@@ -1129,7 +1143,7 @@
                     replyBubble.className = `message-bubble msg-left`;
                     replyBubble.onclick = () => { vibrate(100); showToast("Kurang tepat, emosi rekan tersulut."); };
                     replyBubble.innerHTML = `
-                        <p class="text-[10px] font-bold text-red-700 mb-1">${reply.name}</p>
+                        <p class="text-[10px] font-bold text-red-700 mb-1">${getFullName(reply.name)}</p>
                         <p class="text-sm text-gray-800 leading-snug text-left text-normal">${processedText}</p>
                         <p class="text-[9px] text-gray-400 text-right mt-1">${getTimeString()}</p>
                     `;
